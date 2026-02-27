@@ -1,133 +1,148 @@
-<!DOCTYPE html><html lang="th">
+<!DOCTYPE html>
+<html lang="th">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>สารานุกรมพันธุ์ไม้ โรงเรียนโสตศึกษาจังหวัดกาญจนบุรี</title>  <script src="https://cdn.tailwindcss.com"></script>  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">  <style>
+  <title>สารานุกรมพันธุ์ไม้ โรงเรียนโสตศึกษาจังหวัดกาญจนบุรี</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
     body { font-family: 'Sarabun', sans-serif; }
-    .card { transition: .25s ease; }
-    .card:hover { transform: translateY(-6px) scale(1.02); }
-    .modal-enter { animation: fadeIn .25s ease both; }
-    @keyframes fadeIn { from{opacity:0; transform:scale(.97)} to{opacity:1; transform:scale(1)} }
-  </style></head><body class="bg-gradient-to-br from-purple-50 via-fuchsia-50 to-indigo-50 text-slate-800"><!-- HEADER --><header class="bg-gradient-to-r from-violet-700 via-purple-700 to-fuchsia-600 text-white py-8 text-center">
-  <h1 class="text-3xl md:text-4xl font-bold">🌿 สารานุกรมพันธุ์ไม้</h1>
-  <p class="text-white/80 mt-1">โรงเรียนโสตศึกษาจังหวัดกาญจนบุรี</p>
-</header><!-- SEARCH --><section class="max-w-6xl mx-auto px-4 py-4">
-  <input id="search" placeholder="🔍 ค้นหาชื่อต้นไม้..."
-    class="w-full p-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-purple-500" />
-</section><!-- GRID --><section class="max-w-6xl mx-auto px-4 pb-16">
-  <div id="plantGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-</section><!-- MODAL --><div id="modal" class="hidden fixed inset-0 bg-black/60 flex items-start justify-center overflow-y-auto p-4">
-  <div class="bg-white rounded-2xl max-w-3xl w-full relative modal-enter my-10 shadow-xl">
-    <button onclick="closeModal()" class="absolute right-4 top-3 text-slate-500">✕</button>
+    .card:hover { transform: translateY(-5px); transition:.2s }
+  </style>
+</head>
+
+<body class="bg-gradient-to-br from-purple-50 via-fuchsia-50 to-indigo-50">
+
+<!-- HEADER -->
+<header class="relative w-full overflow-hidden">
+  <img src="PUT_BANNER_URL_HERE" class="h-[300px] w-full object-cover md:h-[420px]"/>
+  <div class="absolute inset-0 bg-black/50"></div>
+  <div class="absolute inset-0 flex items-center">
+    <div class="mx-auto max-w-6xl px-4 text-white">
+      <h1 class="text-3xl md:text-5xl font-bold">🌿 สารานุกรมพันธุ์ไม้</h1>
+      <p class="mt-2">โรงเรียนโสตศึกษาจังหวัดกาญจนบุรี</p>
+    </div>
+  </div>
+</header>
+
+<!-- SEARCH -->
+<section class="max-w-6xl mx-auto px-4 py-6">
+  <input id="search" placeholder="ค้นหาชื่อต้นไม้..." class="w-full rounded-xl border p-3 focus:ring-2 focus:ring-purple-500 outline-none"/>
+</section>
+
+<!-- GRID -->
+<section class="max-w-6xl mx-auto px-4 pb-16">
+  <div id="grid" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3"></div>
+</section>
+
+<!-- MODAL -->
+<div id="modal" class="hidden fixed inset-0 bg-black/50 flex items-start justify-center overflow-y-auto p-4">
+  <div class="bg-white rounded-2xl w-full max-w-3xl my-6 relative">
+    <button onclick="closeModal()" class="absolute right-4 top-3">✕</button>
     <div id="modalContent"></div>
   </div>
-</div><footer class="bg-slate-900 text-white text-center py-4">
-  ผู้รับผิดชอบโครงการแหล่งเรียนรู้ภายในสถานศึกษา: ธนชัย นพวัฒน์
-</footer><script>
+</div>
 
-// ================== 21 TREES ==================
+<footer class="bg-slate-900 py-6 text-center text-white">
+  ผู้พัฒนา: ธนชัย นพวัฒน์
+</footer>
+
+<script>
+
+// ================= DATA =================
 const plants=[
-{name:"ลีลาวดี",sci:"Plumeria rubra",desc:"ไม้ดอกหอม นิยมปลูกประดับ"},
-{name:"ขานาง",sci:"Homalium tomentosum",desc:"ไม้ยืนต้นขนาดใหญ่"},
-{name:"หว้า",sci:"Syzygium cumini",desc:"ไม้ผลพื้นบ้านให้ร่มเงา"},
-{name:"สะเดา",sci:"Azadirachta indica",desc:"ไม้สมุนไพรสารพัดประโยชน์"},
-{name:"มะขาม",sci:"Tamarindus indica",desc:"ไม้ผลเศรษฐกิจสำคัญ"},
-{name:"ตะลิงปลิง",sci:"Averrhoa bilimbi",desc:"ไม้ผลรสเปรี้ยวจัด"},
-{name:"สัก",sci:"Tectona grandis",desc:"ไม้เศรษฐกิจคุณภาพสูง"},
-{name:"ราชพฤกษ์",sci:"Cassia fistula",desc:"ดอกไม้ประจำชาติไทย"},
-{name:"มะม่วง",sci:"Mangifera indica",desc:"ไม้ผลยอดนิยมของไทย"},
-{name:"ขี้เหล็ก",sci:"Senna siamea",desc:"ไม้พื้นบ้านใช้เป็นอาหาร"},
-{name:"อโศกอินเดีย",sci:"Polyalthia longifolia",desc:"ไม้ประดับทรงสูงเรียว"},
-{name:"ปาล์มฟอกซ์เทล",sci:"Wodyetia bifurcata",desc:"ปาล์มประดับทรงสวย"},
-{name:"หูกระจง",sci:"Terminalia catappa",desc:"ไม้ให้ร่มเงาขนาดใหญ่"},
-{name:"ปาล์มพัด",sci:"Livistona rotundifolia",desc:"ปาล์มใบรูปพัด"},
-{name:"พยูง",sci:"Dalbergia cochinchinensis",desc:"ไม้หวงห้ามมูลค่าสูง"},
-{name:"ทองกวาว",sci:"Butea monosperma",desc:"ไม้ดอกสีส้มสด"},
-{name:"กล้วย",sci:"Musa spp.",desc:"พืชอาหารสำคัญของไทย"},
-{name:"แปรงล้างขวด",sci:"Callistemon citrinus",desc:"ไม้ดอกประดับทรงพุ่ม"},
-{name:"ประดู่",sci:"Pterocarpus macrocarpus",desc:"ไม้เนื้อแข็งทนทาน"},
-{name:"เหลืองปรีดียาธร",sci:"Peltophorum pterocarpum",desc:"ไม้ดอกสีเหลืองสด"},
-{name:"ตีนเป็ด",sci:"Alstonia scholaris",desc:"มีกลิ่นแรงช่วงออกดอก"}
+  {name:"ลีลาวดี",sci:"Plumeria rubra",common:"Frangipani",family:"APOCYNACEAE",desc:"ไม้ดอกหอม",highlight:"ดอกหอม ยางมีพิษ"},
+  {name:"ราชพฤกษ์",sci:"Cassia fistula",common:"Golden Shower",family:"FABACEAE",desc:"ดอกไม้ประจำชาติ",highlight:"ดอกเหลืองสวย"},
+  {name:"ตีนเป็ด",sci:"Alstonia scholaris",common:"Devil Tree",family:"APOCYNACEAE",desc:"กลิ่นแรง",highlight:"มีกลิ่นเฉพาะ"}
 ];
 
-const grid=document.getElementById('plantGrid');
-const search=document.getElementById('search');
+const grid=document.getElementById("grid");
+const search=document.getElementById("search");
 
 function render(list){
-  grid.innerHTML='';
+  grid.innerHTML="";
   list.forEach(p=>{
-    const card=document.createElement('div');
-    card.className='card bg-white rounded-2xl shadow p-4 cursor-pointer';
-    card.onclick=()=>openModal(p);
-    card.innerHTML=`
-      <h3 class="font-bold text-purple-700 text-lg">${p.name}</h3>
-      <p class="text-sm text-slate-600">${p.desc}</p>`;
-    grid.appendChild(card);
+    grid.innerHTML+=`<div class="card bg-white rounded-2xl shadow p-4 cursor-pointer" onclick="openPlant('${p.name}')">
+      <h3 class="font-bold text-purple-700">${p.name}</h3>
+      <p class="text-sm text-slate-600">${p.desc}</p>
+    </div>`;
   });
 }
 
-function openModal(p){
-  window.currentPlant=p;
+search.addEventListener("input",()=>{
+  const q=search.value.toLowerCase();
+  render(plants.filter(p=>p.name.includes(q)));
+});
+
+// ================= MODAL =================
+function openPlant(name){
+  const p=plants.find(x=>x.name===name);
   const modal=document.getElementById('modal');
   const content=document.getElementById('modalContent');
+
   modal.classList.remove('hidden');
 
   content.innerHTML=`
-    <div class="bg-gradient-to-r from-violet-700 to-fuchsia-600 text-white p-4 rounded-t-2xl">
-      <h2 class="text-xl font-bold">${p.name}</h2>
-      <p class="text-sm opacity-80 italic">${p.sci}</p>
-    </div>
-    <div class="p-4 space-y-3">
-      <p>${p.desc}</p>
-      <button onclick="showQR('${p.name}')" class="bg-purple-600 text-white px-4 py-2 rounded-xl text-sm">📱 QR Code</button>
-      <div id="qrBox"></div>
-    </div>`;
+  <div class="bg-gradient-to-r from-violet-700 to-fuchsia-600 text-white p-4">
+    <h2 class="text-xl font-bold">${p.name}</h2>
+    <p class="text-white/70 text-sm">${p.sci}</p>
+  </div>
+
+  <div class="p-4 space-y-3">
+    <div><b>ชื่อสามัญ:</b> ${p.common}</div>
+    <div><b>วงศ์:</b> ${p.family}</div>
+    <div class="bg-slate-100 p-3 rounded-lg"><b>ลักษณะเด่น:</b><br>${p.highlight}</div>
+
+    <button onclick="showQR('${p.name}')" class="bg-purple-600 text-white px-4 py-2 rounded-full">📱 QR Code</button>
+  </div>`;
 }
 
 function closeModal(){
   document.getElementById('modal').classList.add('hidden');
 }
 
-// ================= QR =================
+// ================= QR POPUP =================
 function showQR(name){
-  const box=document.getElementById('qrBox');
-  box.innerHTML='<div id="qrCanvas" class="flex justify-center"></div>';
+  const old=document.getElementById('qrPopup');
+  if(old) old.remove();
+
+  const popup=document.createElement('div');
+  popup.id='qrPopup';
+  popup.className='fixed inset-0 bg-black/60 flex items-center justify-center z-50';
+  popup.innerHTML=`
+    <div class="bg-white rounded-2xl p-5 text-center shadow-xl relative">
+      <button onclick="this.parentElement.parentElement.remove()" class="absolute right-3 top-2">✕</button>
+      <div class="font-semibold mb-3">QR: ${name}</div>
+      <div id="qrCanvas" class="flex justify-center mb-3"></div>
+      <button id="saveQR" class="bg-purple-600 text-white px-3 py-1 rounded-full text-sm">💾 บันทึก QR</button>
+    </div>`;
+
+  document.body.appendChild(popup);
+
   const url=location.origin+location.pathname+'?plant='+encodeURIComponent(name);
-  new QRCode(document.getElementById('qrCanvas'),{text:url,width:160,height:160});
-}
+  const wrap=document.getElementById('qrCanvas');
+  new QRCode(wrap,{text:url,width:180,height:180});
 
-// เปิดจาก QR
-const params=new URLSearchParams(location.search);
-const plantFromQR=params.get('plant');
-if(plantFromQR){
-  const found=plants.find(p=>p.name===plantFromQR);
-  if(found){
-    setTimeout(()=>{
-      openModal(found);
-      addQRCloseButton();
-    },300);
-  }
+  setTimeout(()=>{
+    const img=wrap.querySelector('img')||wrap.querySelector('canvas');
+    document.getElementById('saveQR').onclick=()=>{
+      let dataURL='';
+      if(img.tagName==='IMG') dataURL=img.src;
+      else dataURL=img.toDataURL();
+      const a=document.createElement('a');
+      a.href=dataURL;
+      a.download=`QR-${name}.png`;
+      a.click();
+    };
+  },200);
 }
-
-// ปุ่มปิดหน้า (ไม่บังชื่อ)
-function addQRCloseButton(){
-  const modalBox=document.querySelector('#modal > div');
-  if(!modalBox) return;
-  const btn=document.createElement('button');
-  btn.textContent='🚪 ปิดหน้านี้';
-  btn.className='absolute left-4 top-16 md:top-14 text-xs bg-slate-800 text-white px-3 py-1 rounded-full shadow';
-  btn.onclick=()=>{
-    window.close();
-    setTimeout(()=>{ history.back(); },200);
-  };
-  modalBox.appendChild(btn);
-}
-
-search.addEventListener('input',()=>{
-  const q=search.value.toLowerCase();
-  render(plants.filter(p=>p.name.includes(q)));
-});
 
 render(plants);
-</script></body>
+</script>
+
+</body>
 </html>
