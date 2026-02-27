@@ -60,10 +60,10 @@
   </section>
 
   <!-- MODAL DETAIL -->
-  <div id="modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-3" onclick="backdropClose(event)">
-    <div class="bg-white rounded-2xl w-full max-w-3xl max-h-[92vh] overflow-hidden relative modal-enter">
+  <div id="modal" class="hidden fixed inset-0 bg-black/50 flex items-start justify-center p-3 overflow-y-auto" onclick="backdropClose(event)">
+    <div class="bg-white rounded-2xl w-full max-w-3xl my-6 max-h-none overflow-visible relative modal-enter">
       <button onclick="closeModal()" class="absolute right-4 top-3 text-slate-500 z-10">✕</button>
-      <div id="modalContent" class="h-full flex flex-col"></div>
+      <div id="modalContent" class="flex flex-col"></div>
     </div>
   </div>
 
@@ -444,19 +444,41 @@
 
     // ===== QR SYSTEM =====
     function showQR(name){
-      const modal=document.getElementById('modalContent');
-      const old=document.getElementById('qrBox');
+      // ลบ popup เก่า
+      const old=document.getElementById('qrPopup');
       if(old) old.remove();
-      const wrap=document.createElement('div');
-      wrap.id='qrBox';
-      wrap.className='mt-4 p-4 border rounded-xl text-center bg-purple-50';
-      wrap.innerHTML=`
-        <div class="font-semibold mb-2">สแกนเพื่อดูต้นไม้: ${name}</div>
-        <div id="qrCanvas" class="flex justify-center"></div>
-        <button onclick="this.parentElement.remove()" class="text-xs mt-2 text-purple-600">ปิด QR</button>`;
-      modal.appendChild(wrap);
+
+      // สร้าง popup กลางจอ
+      const popup=document.createElement('div');
+      popup.id='qrPopup';
+      popup.className='fixed inset-0 bg-black/60 flex items-center justify-center z-50';
+      popup.innerHTML=`
+        <div class="bg-white rounded-2xl p-5 text-center shadow-xl relative w-[260px]">
+          <button onclick="document.getElementById('qrPopup').remove()" class="absolute right-3 top-2 text-slate-400">✕</button>
+          <div class="font-semibold mb-3">สแกน: ${name}</div>
+          <div id="qrCanvas" class="flex justify-center mb-3"></div>
+          <button id="saveQRBtn" class="text-xs bg-purple-600 text-white px-3 py-1 rounded-full">💾 บันทึก QR</button>
+        </div>`;
+      document.body.appendChild(popup);
+
       const url=location.origin+location.pathname+'?plant='+encodeURIComponent(name);
-      new QRCode(document.getElementById('qrCanvas'),{ text:url, width:160, height:160 });
+      const canvasWrap=document.getElementById('qrCanvas');
+      new QRCode(canvasWrap,{ text:url, width:180, height:180 });
+
+      // ปุ่มเซฟ QR
+      setTimeout(()=>{
+        const img=canvasWrap.querySelector('img') || canvasWrap.querySelector('canvas');
+        document.getElementById('saveQRBtn').onclick=()=>{
+          if(!img) return;
+          let dataURL='';
+          if(img.tagName==='IMG') dataURL=img.src;
+          else dataURL=img.toDataURL();
+          const a=document.createElement('a');
+          a.href=dataURL;
+          a.download=`QR-${name}.png`;
+          a.click();
+        };
+      },200);
     }
 
     // เปิดต้นไม้จาก QR
