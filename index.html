@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>สารานุกรมพันธุ์ไม้ โรงเรียนโสตศึกษาจังหวัดกาญจนบุรี</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Sarabun', sans-serif; }
@@ -18,7 +19,7 @@
 </head>
 <body class="bg-gradient-to-br from-purple-50 via-fuchsia-50 to-indigo-50 text-slate-800">
 
-  <!-- HERO HEADER (หน้าแรก) -->
+  <!-- HERO HEADER -->
   <header class="relative w-full overflow-hidden">
     <img src="PUT_BANNER_URL_HERE" class="h-[280px] md:h-[360px] lg:h-[460px] w-full object-cover" />
     <div class="absolute inset-0 bg-black/50"></div>
@@ -31,7 +32,7 @@
     </div>
   </header>
 
-  <!-- MINI HEADER (คงสไตล์แอปไว้) -->
+  <!-- MINI HEADER -->
   <div class="bg-gradient-to-r from-violet-700 via-purple-700 to-fuchsia-600 text-white shadow-lg">
     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
       <img src="PUT_SCHOOL_LOGO_URL_HERE" class="w-10 h-10 object-contain bg-white rounded-lg p-1" alt="โลโก้โรงเรียน">
@@ -219,47 +220,48 @@
     }
 
     function openModal(p){
+      window.currentPlant=p;
       const modal=document.getElementById('modal');
       const content=document.getElementById('modalContent');
       modal.classList.remove('hidden');
 
       const video = p.video && !p.video.includes('PUT')
-        ? `<iframe class=\"w-full h-full rounded-xl\" src=\"${p.video}\" allowfullscreen></iframe>`
-        : `<div class=\"flex items-center justify-center h-full text-slate-400\">ยังไม่มีวิดีโอ</div>`;
+        ? `<iframe class="w-full h-full rounded-xl" src="${p.video}" allowfullscreen></iframe>`
+        : `<div class="flex items-center justify-center h-full text-slate-400">ยังไม่มีวิดีโอ</div>`;
 
       content.innerHTML=`
-        <!-- HEADER -->
-        <div class=\"bg-gradient-to-r from-violet-700 via-purple-700 to-fuchsia-600 text-white p-4\">
-          <h2 class=\"text-xl md:text-2xl font-bold\">${p.name}</h2>
-          <p class=\"text-white/80 italic text-sm\">${p.sci}</p>
+        <div class="bg-gradient-to-r from-violet-700 via-purple-700 to-fuchsia-600 text-white p-4">
+          <h2 class="text-xl md:text-2xl font-bold">${p.name}</h2>
+          <p class="text-white/80 italic text-sm">${p.sci}</p>
         </div>
 
-        <!-- BODY (scroll area) -->
-        <div class=\"flex-1 overflow-y-auto p-4\">
-          <div class=\"grid md:grid-cols-2 gap-4 mb-4\">
+        <div class="flex-1 overflow-y-auto p-4">
+          <div class="grid md:grid-cols-2 gap-4 mb-4">
             ${p.image && !p.image.includes('PUT')
-              ? `<img src=\"${p.image}\" class=\"rounded-xl w-full h-56 md:h-64 object-cover\"/>`
-              : `<div class=\"h-56 md:h-64 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400\">ไม่มีรูป</div>`}
-            <div class=\"space-y-2 text-sm\">
+              ? `<img src="${p.image}" class="rounded-xl w-full h-56 md:h-64 object-cover"/>`
+              : `<div class="h-56 md:h-64 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400">ไม่มีรูป</div>`}
+            <div class="space-y-2 text-sm">
               <div><b>ชื่อสามัญ:</b> ${p.common}</div>
               <div><b>วงศ์:</b> ${p.family}</div>
-              <div class=\"bg-slate-50 p-3 rounded-lg\"><b>ลักษณะเด่น:</b><br>${p.highlight}</div>
+              <div class="bg-slate-50 p-3 rounded-lg"><b>ลักษณะเด่น:</b><br>${p.highlight}</div>
             </div>
           </div>
 
-          <!-- TABS -->
-          <div class=\"sticky top-0 bg-white py-2\">
-            <div class=\"flex flex-wrap gap-2\" id=\"plantTabs\">
-              <button class=\"tabBtn px-3 py-2 rounded-lg bg-purple-600 text-white text-sm\" data-tab=\"video\">🤟 ภาษามือ</button>
-              <button class=\"tabBtn px-3 py-2 rounded-lg bg-slate-100 text-sm\" data-tab=\"general\">🌿 ลักษณะทั่วไป</button>
-              <button class=\"tabBtn px-3 py-2 rounded-lg bg-slate-100 text-sm\" data-tab=\"distribution\">🗺️ การกระจายพันธุ์</button>
-              <button class=\"tabBtn px-3 py-2 rounded-lg bg-slate-100 text-sm\" data-tab=\"benefit\">💚 ประโยชน์</button>
-              <button class=\"tabBtn px-3 py-2 rounded-lg bg-slate-100 text-sm\" data-tab=\"reference\">📚 เอกสารอ้างอิง</button>
+          <div class="sticky top-0 bg-white py-2">
+            <div class="flex flex-wrap gap-2" id="plantTabs">
+              <button class="tabBtn px-3 py-2 rounded-lg bg-purple-600 text-white text-sm" data-tab="video">🤟 ภาษามือ</button>
+              <button class="tabBtn px-3 py-2 rounded-lg bg-slate-100 text-sm" data-tab="general">🌿 ลักษณะทั่วไป</button>
+              <button class="tabBtn px-3 py-2 rounded-lg bg-slate-100 text-sm" data-tab="distribution">🗺️ การกระจายพันธุ์</button>
+              <button class="tabBtn px-3 py-2 rounded-lg bg-slate-100 text-sm" data-tab="benefit">💚 ประโยชน์</button>
+              <button class="tabBtn px-3 py-2 rounded-lg bg-slate-100 text-sm" data-tab="reference">📚 เอกสารอ้างอิง</button>
             </div>
           </div>
 
-          <!-- TAB CONTENT -->
-          <div id=\"tabContent\" class=\"mt-3\"></div>
+          <div class="flex justify-end mb-2">
+            <button onclick="showQR('${p.name}')" class="text-xs bg-purple-600 text-white px-3 py-1 rounded-full">📱 QR Code</button>
+          </div>
+
+          <div id="tabContent" class="mt-3"></div>
         </div>
       `;
 
@@ -269,44 +271,43 @@
       const renderTab=(name)=>{
         if(name==='video'){
           tabContent.innerHTML=`
-            <div class=\"font-semibold mb-2 text-lg\">วิดีโอภาษามือ</div>
-            <div class=\"w-full bg-black rounded-2xl overflow-hidden shadow-lg\">${video}</div>
-            <p class=\"text-xs text-slate-400 mt-2\">📱 ใช้ลิงก์ YouTube embed (เช่น /embed/xxxx) เพื่อให้เต็มจอสวยที่สุด</p>`;
+            <div class="font-semibold mb-2 text-lg">วิดีโอภาษามือ</div>
+            <div class="w-full bg-black rounded-2xl overflow-hidden shadow-lg">${video}</div>
+            <p class="text-xs text-slate-400 mt-2">📱 ใช้ลิงก์ YouTube embed (เช่น /embed/xxxx)</p>`;
           return;
         }
         if(name==='general'){
           tabContent.innerHTML=`
-            <div class=\"bg-slate-50 p-4 rounded-xl text-sm\">
+            <div class="bg-slate-50 p-4 rounded-xl text-sm">
               <b>คำอธิบาย:</b><br>${p.desc || '-'}
             </div>`;
           return;
         }
         if(name==='distribution'){
           tabContent.innerHTML=`
-            <div class=\"grid md:grid-cols-2 gap-3 text-sm\">
-              <div class=\"bg-blue-50 p-3 rounded-xl\"><b>ถิ่นกำเนิด</b><br>พบในเขตร้อนของเอเชีย</div>
-              <div class=\"bg-purple-50 p-3 rounded-xl\"><b>การปลูกในไทย</b><br>พบได้ทั่วไปในโรงเรียนและชุมชน</div>
+            <div class="grid md:grid-cols-2 gap-3 text-sm">
+              <div class="bg-blue-50 p-3 rounded-xl"><b>ถิ่นกำเนิด</b><br>พบในเขตร้อนของเอเชีย</div>
+              <div class="bg-purple-50 p-3 rounded-xl"><b>การปลูกในไทย</b><br>พบได้ทั่วไปในโรงเรียนและชุมชน</div>
             </div>`;
           return;
         }
         if(name==='benefit'){
           tabContent.innerHTML=`
-            <div class=\"bg-purple-50 p-3 rounded-xl text-sm\">
+            <div class="bg-purple-50 p-3 rounded-xl text-sm">
               ใช้ประโยชน์ด้านภูมิทัศน์ การเรียนรู้ และการอนุรักษ์พรรณไม้ในโรงเรียน
             </div>`;
           return;
         }
         if(name==='reference'){
           tabContent.innerHTML=`
-            <div class=\"bg-white border border-purple-200 p-4 rounded-xl text-sm space-y-2\">
-              <div class=\"font-semibold text-purple-700\">📚 แหล่งอ้างอิง</div>
-              <ul class=\"list-disc pl-5 space-y-1 text-slate-700\">
+            <div class="bg-white border border-purple-200 p-4 rounded-xl text-sm space-y-2">
+              <div class="font-semibold text-purple-700">📚 แหล่งอ้างอิง</div>
+              <ul class="list-disc pl-5 space-y-1 text-slate-700">
                 <li>กรมอุทยานแห่งชาติ สัตว์ป่า และพันธุ์พืช</li>
                 <li>Flora of Thailand Database</li>
                 <li>สวนพฤกษศาสตร์โรงเรียน (สสวท.)</li>
                 <li>ฐานข้อมูลพรรณไม้ในประเทศไทย (Thai Plant Database)</li>
               </ul>
-              <p class=\"text-xs text-slate-400\">* ผู้ดูแลสามารถแก้ไขรายการอ้างอิงในระบบ Admin ได้ในอนาคต</p>
             </div>`;
           return;
         }
@@ -325,7 +326,11 @@
       renderTab('video');
     }
 
-    function closeModal(){document.getElementById('modal').classList.add('hidden');}
+    function closeModal(){
+      const qrBox=document.getElementById('qrBox');
+      if(qrBox) qrBox.remove();
+      document.getElementById('modal').classList.add('hidden');
+    }
     function backdropClose(e){ if(e.target.id==='modal') closeModal(); }
     document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
 
@@ -339,7 +344,7 @@
     search.addEventListener('input',update);
 
     // ===== ADMIN =====
-    const SHEET_API = "PUT_GOOGLE_SCRIPT_URL_HERE"; // ใส่ Web App URL
+    const SHEET_API = "PUT_GOOGLE_SCRIPT_URL_HERE";
     const adminBtn=document.getElementById('adminBtn');
     const panel=document.getElementById('adminPanel');
     adminBtn.onclick=()=>{
@@ -360,23 +365,19 @@
         document.getElementById('loginErr').classList.remove('hidden');
       }
     }
-
     function forceCloseLogin(){
       document.getElementById('loginModal').classList.add('hidden');
       document.getElementById('adminPass').value='';
       document.getElementById('loginErr').classList.add('hidden');
     }
     function closeLogin(e){ if(e.target.id==='loginModal') forceCloseLogin(); }
-    document.addEventListener('keydown',e=>{ if(e.key==='Escape') forceCloseLogin(); });
 
     // ===== EDIT / SAVE =====
     let editIndex=null;
     function populateAdminList(){
       const select=document.getElementById('plantSelect');
       select.innerHTML='<option value="">-- เพิ่มใหม่ --</option>';
-      plants.forEach((p,i)=>{
-        select.innerHTML+=`<option value="${i}">${p.name}</option>`;
-      });
+      plants.forEach((p,i)=>{ select.innerHTML+=`<option value="${i}">${p.name}</option>`; });
     }
     function loadSelectedPlant(){
       const val=document.getElementById('plantSelect').value;
@@ -393,10 +394,8 @@
       document.getElementById('a_img').value=p.image||'';
       document.getElementById('a_vid').value=p.video||'';
     }
-    function clearForm(){
-      ['a_name','a_sci','a_common','a_family','a_desc','a_high','a_tags','a_img','a_vid']
-        .forEach(id=>document.getElementById(id).value='');
-    }
+    function clearForm(){ ['a_name','a_sci','a_common','a_family','a_desc','a_high','a_tags','a_img','a_vid']
+      .forEach(id=>document.getElementById(id).value=''); }
     function saveAdmin(){
       const item={
         name:document.getElementById('a_name').value,
@@ -428,50 +427,67 @@
       e.preventDefault();
       const email=document.getElementById('fbEmail').value;
       const message=document.getElementById('fbMsg').value;
-      if(!SHEET_API.includes('http')){
-        alert('ยังไม่ได้ตั้งค่า Google Script URL');
-        return;
-      }
+      if(!SHEET_API.includes('http')){ alert('ยังไม่ได้ตั้งค่า Google Script URL'); return; }
       try{
-        await fetch(SHEET_API,{
-          method:'POST',
-          body:JSON.stringify({email,message,source:'plant-web',time:new Date().toISOString()}),
-          headers:{'Content-Type':'application/json'}
-        });
+        await fetch(SHEET_API,{ method:'POST', body:JSON.stringify({email,message,source:'plant-web',time:new Date().toISOString()}), headers:{'Content-Type':'application/json'} });
         alert('ส่งข้อเสนอแนะแล้ว ขอบคุณครับ 🌿');
         forceCloseFeedback();
         document.getElementById('fbEmail').value='';
         document.getElementById('fbMsg').value='';
-      }catch(err){
-        alert('ส่งไม่สำเร็จ ตรวจสอบอินเทอร์เน็ต');
-      }
+      }catch(err){ alert('ส่งไม่สำเร็จ ตรวจสอบอินเทอร์เน็ต'); }
     }
 
-    // ===== DASHBOARD VIEWER =====
-    function openDashboard(){
-      window.open(SHEET_API.replace('/exec',''), '_blank');
-    }
-
-    // เพิ่มปุ่ม Dashboard ให้ Admin
-    setTimeout(()=>{
-      if(adminAuth){
-        const btn=document.createElement('button');
-        btn.textContent='📊 Dashboard';
-        btn.className='fixed bottom-20 right-6 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white px-4 py-2 rounded-full shadow-lg';
-        btn.onclick=openDashboard;
-        document.body.appendChild(btn);
-      }
-    },1000);
-
-    // ===== FEEDBACK =====
+    // ===== FEEDBACK MODAL =====
     function openFeedback(){ document.getElementById('feedbackModal').classList.remove('hidden'); }
     function forceCloseFeedback(){ document.getElementById('feedbackModal').classList.add('hidden'); }
     function closeFeedback(e){ if(e.target.id==='feedbackModal') forceCloseFeedback(); }
-    document.addEventListener('keydown',e=>{ if(e.key==='Escape') forceCloseFeedback(); });
 
-    // init
-    renderFilters();
-    render(plants);
+    // ===== QR SYSTEM =====
+    function showQR(name){
+      const modal=document.getElementById('modalContent');
+      const old=document.getElementById('qrBox');
+      if(old) old.remove();
+      const wrap=document.createElement('div');
+      wrap.id='qrBox';
+      wrap.className='mt-4 p-4 border rounded-xl text-center bg-purple-50';
+      wrap.innerHTML=`
+        <div class="font-semibold mb-2">สแกนเพื่อดูต้นไม้: ${name}</div>
+        <div id="qrCanvas" class="flex justify-center"></div>
+        <button onclick="this.parentElement.remove()" class="text-xs mt-2 text-purple-600">ปิด QR</button>`;
+      modal.appendChild(wrap);
+      const url=location.origin+location.pathname+'?plant='+encodeURIComponent(name);
+      new QRCode(document.getElementById('qrCanvas'),{ text:url, width:160, height:160 });
+    }
+
+    // เปิดต้นไม้จาก QR
+    const params=new URLSearchParams(location.search);
+    const plantFromQR=params.get('plant');
+    if(plantFromQR){
+      const found=plants.find(p=>p.name===plantFromQR);
+      if(found){
+        setTimeout(()=>{
+          openModal(found);
+          addQRCloseButton();
+        },300);
+      }
+    }
+
+    // ปุ่มปิดหน้าเมื่อเปิดจาก QR
+    function addQRCloseButton(){
+      const modalBox=document.querySelector('#modal > div');
+      if(!modalBox) return;
+      const btn=document.createElement('button');
+      btn.textContent='🚪 ปิดหน้านี้';
+      btn.className='absolute left-4 top-3 text-xs bg-slate-800 text-white px-3 py-1 rounded-full';
+      btn.onclick=()=>{
+        window.close();
+        setTimeout(()=>{ history.back(); },200);
+      };
+      modalBox.appendChild(btn);
+    }
+
+    // INIT
+    update();
   </script>
 </body>
 </html>
