@@ -126,22 +126,43 @@ function initTabs(p){
 function closeModal(){ document.getElementById('modal').classList.add('hidden'); }
 
 // QR
+// ===== QR SYSTEM (FLOAT CENTER POPUP) =====
 function showQR(name){
-  const box=document.getElementById('qrBox');
-  box.innerHTML='<div id="qrCanvas" class="flex justify-center mt-3"></div>';
+  const old=document.getElementById('qrOverlay');
+  if(old) old.remove();
+
+  const overlay=document.createElement('div');
+  overlay.id='qrOverlay';
+  overlay.className='fixed inset-0 bg-black/60 flex items-center justify-center z-50';
+  overlay.onclick=(e)=>{ if(e.target.id==='qrOverlay') overlay.remove(); };
+
+  overlay.innerHTML=`
+    <div class="bg-white rounded-2xl p-6 shadow-xl text-center relative max-w-xs w-full">
+      <button onclick="document.getElementById('qrOverlay').remove()" 
+        class="absolute top-2 right-3 text-slate-400 hover:text-red-500">✕</button>
+      <div class="font-semibold mb-3 text-purple-700">QR: ${name}</div>
+      <div id="qrCanvas" class="flex justify-center"></div>
+      <button onclick="downloadQR()" 
+        class="mt-4 text-xs bg-purple-600 text-white px-3 py-1 rounded-full">💾 เซฟ QR</button>
+    </div>`;
+
+  document.body.appendChild(overlay);
+
   const url=location.origin+location.pathname+'?plant='+encodeURIComponent(name);
-  new QRCode(document.getElementById('qrCanvas'),{text:url,width:160,height:160});
+  new QRCode(document.getElementById('qrCanvas'),{ text:url, width:180, height:180 });
 }
 
-// เปิดจาก QR
-const params=new URLSearchParams(location.search);
-const plantFromQR=params.get('plant');
-if(plantFromQR){
-  const found=plants.find(p=>p.name===plantFromQR);
-  if(found){
-    setTimeout(()=>{
-      openModal(found);
-      addQRCloseButton();
+function downloadQR(){
+  const img=document.querySelector('#qrCanvas img');
+  if(!img) return alert('ยังสร้าง QR ไม่เสร็จ');
+  const link=document.createElement('a');
+  link.href=img.src;
+  link.download='plant-qr.png';
+  link.click();
+}
+
+// ปุ่มปิดหน้าเมื่อเปิดจาก QR
+function addQRCloseButton();
     },300);
   }
 }
