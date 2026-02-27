@@ -1,133 +1,988 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="th">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ระบบข้อมูลพรรณไม้</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>สารานุกรมพันธุ์ไม้ โรงเรียนโสตศึกษาจังหวัดกาญจนบุรี</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Sarabun", sans-serif;
+      }
+      .card {
+        transition:
+          transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+          box-shadow 0.25s ease;
+      }
+      .card:hover {
+        transform: translateY(-6px) scale(1.02);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+      }
+      .fade-in {
+        animation: fadeIn 0.25s ease both;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      .modal-enter {
+        animation: modalIn 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+      }
+      @keyframes modalIn {
+        from {
+          opacity: 0;
+          transform: scale(0.96);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-gradient-to-br from-purple-50 via-fuchsia-50 to-indigo-50 text-slate-800">
+    <!-- HEADER -->
+    <header class="bg-gradient-to-r from-violet-700 via-purple-700 to-fuchsia-600 text-white shadow-lg">
+      <div class="mx-auto flex max-w-6xl items-center gap-4 px-4 py-5">
+        <img
+          src="PUT_SCHOOL_LOGO_URL_HERE"
+          class="h-14 w-14 rounded-xl bg-white p-1 object-contain"
+          alt="โลโก้โรงเรียน"
+        />
+        <div>
+          <h1 class="text-2xl font-bold md:text-3xl">สารานุกรมพันธุ์ไม้</h1>
+          <p class="text-white/90">โรงเรียนโสตศึกษาจังหวัดกาญจนบุรี • รองรับภาษามือ</p>
+        </div>
+      </div>
+    </header>
 
-<!-- Tailwind (ตัวจริง) -->
-<script src="https://cdn.tailwindcss.com"></script>
+    <!-- SEARCH -->
+    <section class="mx-auto max-w-6xl px-4 py-4">
+      <input
+        id="search"
+        type="text"
+        placeholder="ค้นหาชื่อต้นไม้..."
+        class="w-full rounded-xl border p-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
+      />
+    </section>
 
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
-<style>
-body{font-family:'Sarabun',sans-serif}
-</style>
-</head>
+    <!-- LEGEND + FILTER -->
+    <section class="mx-auto max-w-6xl px-4 pb-4">
+      <div class="rounded-2xl bg-white p-4 shadow">
+        <div class="mb-2 text-sm font-semibold">ตัวกรองตามคุณลักษณะ</div>
+        <div class="flex flex-wrap gap-2" id="tagFilters"></div>
+      </div>
+    </section>
 
-<body class="bg-purple-50">
+    <!-- GRID -->
+    <section class="mx-auto max-w-6xl px-4 pb-16">
+      <div id="plantGrid" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3"></div>
+    </section>
 
-<div class="max-w-6xl mx-auto p-4">
+    <!-- MODAL DETAIL -->
+    <div
+      id="modal"
+      class="fixed inset-0 hidden items-center justify-center bg-black/50 p-3"
+      onclick="backdropClose(event)"
+    >
+      <div class="modal-enter relative max-h-[92vh] w-full max-w-3xl overflow-hidden rounded-2xl bg-white">
+        <button onclick="closeModal()" class="absolute right-4 top-3 z-10 text-slate-500">✕</button>
+        <div id="modalContent" class="flex h-full flex-col"></div>
+      </div>
+    </div>
 
-<h1 class="text-3xl font-bold text-purple-900 mb-2">
-ระบบข้อมูลพรรณไม้เพื่อการเรียนรู้
-</h1>
-<p class="text-gray-600 mb-6">
-โรงเรียนโสตศึกษาจังหวัดกาญจนบุรี
-</p>
+    <!-- ADMIN LOGIN MODAL -->
+    <div
+      id="loginModal"
+      class="fixed inset-0 hidden items-center justify-center bg-black/50 p-4"
+      onclick="closeLogin(event)"
+    >
+      <div class="modal-enter w-full max-w-sm rounded-2xl bg-white p-5" onclick="event.stopPropagation()">
+        <div class="mb-2 flex items-center justify-between">
+          <h3 class="text-lg font-bold">เข้าสู่ระบบผู้ดูแล</h3>
+          <button onclick="forceCloseLogin()" class="text-slate-400 hover:text-red-500">✕</button>
+        </div>
+        <p class="mb-3 text-xs text-slate-500">
+          หมายเหตุ: ข้อมูลที่แก้ไขจะถูกบันทึกไว้ในเบราว์เซอร์เครื่องนี้เท่านั้น
+        </p>
+        <input id="adminPass" type="password" placeholder="กรอกรหัสผ่าน" class="mb-3 w-full rounded border p-2" />
+        <button onclick="loginAdmin()" class="w-full rounded bg-purple-600 py-2 text-white">เข้าสู่ระบบ</button>
+        <button onclick="forceCloseLogin()" class="mt-2 w-full text-sm text-slate-500">ยกเลิก</button>
+        <p id="loginErr" class="mt-2 hidden text-sm text-red-500">รหัสไม่ถูกต้อง</p>
+      </div>
+    </div>
 
-<!-- GRID -->
-<div id="grid" class="grid md:grid-cols-3 gap-4"></div>
+    <!-- ADMIN FLOAT BUTTON -->
+    <button
+      id="adminBtn"
+      class="fixed bottom-6 right-6 rounded-full bg-purple-600 px-5 py-3 text-white shadow-lg hover:bg-purple-700"
+    >
+      Admin
+    </button>
 
-<!-- DETAIL -->
-<div id="detail" class="hidden mt-6"></div>
+    <!-- ADMIN PANEL -->
+    <div id="adminPanel" class="fixed inset-0 hidden items-center justify-center bg-black/50 p-4">
+      <div class="modal-enter w-full max-w-3xl rounded-2xl bg-white p-5">
+        <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h3 class="text-lg font-bold">จัดการข้อมูลต้นไม้</h3>
+          <div class="flex items-center gap-2">
+            <button
+              onclick="exportPlants()"
+              class="rounded-lg border border-purple-200 bg-white px-3 py-2 text-sm text-purple-700 hover:bg-purple-50"
+            >
+              Export JSON
+            </button>
+            <button
+              onclick="triggerImport()"
+              class="rounded-lg border border-purple-200 bg-white px-3 py-2 text-sm text-purple-700 hover:bg-purple-50"
+            >
+              Import JSON
+            </button>
+            <button
+              onclick="resetPlants()"
+              class="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+            >
+              Reset
+            </button>
+            <button onclick="toggleAdmin()" class="px-2 py-2 text-slate-500 hover:text-slate-800">✕</button>
+          </div>
+        </div>
 
-</div>
+        <input id="importFile" class="hidden" type="file" accept="application/json" onchange="importPlants(event)" />
 
-<script>
-const plants = [
-{
-name:"ลีลาวดี",
-scientific:"Plumeria rubra",
-image:"https://upload.wikimedia.org/wikipedia/commons/3/3c/Plumeria_rubra_flowers.jpg",
-desc:"ไม้ดอกหอม นิยมปลูกในวัดและโรงเรียน",
-youtube:"PUT_YOUTUBE"
-},
-{
-name:"ราชพฤกษ์",
-scientific:"Cassia fistula",
-image:"https://upload.wikimedia.org/wikipedia/commons/8/8a/Cassia_fistula_flowers.jpg",
-desc:"ดอกไม้ประจำชาติไทย สีเหลืองสด",
-youtube:"PUT_YOUTUBE"
-},
-{
-name:"สะเดา",
-scientific:"Azadirachta indica",
-image:"https://upload.wikimedia.org/wikipedia/commons/2/20/Azadirachta_indica_tree.jpg",
-desc:"ไม้สมุนไพรสำคัญ ใช้ทั้งอาหารและยา",
-youtube:"PUT_YOUTUBE"
-},
-{
-name:"มะขาม",
-scientific:"Tamarindus indica",
-image:"https://upload.wikimedia.org/wikipedia/commons/6/62/Tamarindus_indica.jpg",
-desc:"ไม้ผลเศรษฐกิจ ให้ร่มเงา",
-youtube:"PUT_YOUTUBE"
-},
-{
-name:"มะม่วง",
-scientific:"Mangifera indica",
-image:"https://upload.wikimedia.org/wikipedia/commons/9/90/Hapus_Mango.jpg",
-desc:"ไม้ผลยอดนิยมของไทย",
-youtube:"PUT_YOUTUBE"
-},
-{
-name:"สัก",
-scientific:"Tectona grandis",
-image:"https://upload.wikimedia.org/wikipedia/commons/5/5f/Tectona_grandis.jpg",
-desc:"ไม้เศรษฐกิจคุณภาพสูง",
-youtube:"PUT_YOUTUBE"
-}
-];
+        <div class="mb-3">
+          <label class="text-sm font-semibold">เลือกต้นไม้เพื่อแก้ไข</label>
+          <select id="plantSelect" class="mt-1 w-full rounded border p-2" onchange="loadSelectedPlant()"></select>
+        </div>
 
-const grid=document.getElementById('grid');
-const detail=document.getElementById('detail');
+        <div class="grid grid-cols-2 gap-2 text-sm">
+          <input id="a_name" placeholder="ชื่อไทย" class="rounded border p-2" />
+          <input id="a_sci" placeholder="ชื่อวิทย์" class="rounded border p-2" />
+          <input id="a_common" placeholder="ชื่อสามัญ" class="rounded border p-2" />
+          <input id="a_family" placeholder="วงศ์" class="rounded border p-2" />
+          <input id="a_tags" placeholder="tags เช่น edible,fragrant" class="col-span-2 rounded border p-2" />
+          <input id="a_img" placeholder="URL รูป" class="col-span-2 rounded border p-2" />
+          <input id="a_vid" placeholder="URL วิดีโอ embed" class="col-span-2 rounded border p-2" />
+          <textarea id="a_desc" placeholder="คำอธิบาย" class="col-span-2 rounded border p-2"></textarea>
+          <textarea id="a_high" placeholder="ลักษณะเด่น" class="col-span-2 rounded border p-2"></textarea>
+        </div>
+        <button onclick="saveAdmin()" class="mt-3 w-full rounded bg-purple-600 py-2 text-white">บันทึก</button>
+      </div>
+    </div>
 
-plants.forEach((p,i)=>{
-const card=document.createElement('div');
-card.className="bg-white rounded-xl shadow p-4 cursor-pointer hover:shadow-lg transition";
+    <footer class="bg-slate-900 py-4 text-center text-white">
+      © 2026 โรงเรียนโสตศึกษาจังหวัดกาญจนบุรี<br />
+      <span class="text-sm text-white/80">ผู้รับผิดชอบโครงการแหล่งเรียนรู้ภายในสถานศึกษา: ธนชัย นพวัฒน์</span>
+    </footer>
 
-card.innerHTML=`
-<div class="h-40 bg-purple-100 mb-3 overflow-hidden rounded">
-<img src="${p.image}" class="w-full h-full object-cover">
-</div>
-<h3 class="font-bold text-purple-900">${p.name}</h3>
-<p class="text-sm text-gray-500">${p.scientific}</p>
-<p class="text-sm mt-2 text-gray-600">${p.desc}</p>
-`;
+    <!-- FEEDBACK BUTTON -->
+    <button
+      onclick="openFeedback()"
+      class="fixed bottom-6 left-6 rounded-full bg-pink-600 px-4 py-3 text-white shadow-lg hover:bg-pink-700"
+    >
+      เสนอแนะ
+    </button>
 
-card.onclick=()=>showDetail(i);
-grid.appendChild(card);
-});
+    <!-- FEEDBACK MODAL -->
+    <div
+      id="feedbackModal"
+      class="fixed inset-0 hidden items-center justify-center bg-black/50 p-4"
+      onclick="closeFeedback(event)"
+    >
+      <div class="w-full max-w-lg rounded-2xl bg-white p-5" onclick="event.stopPropagation()">
+        <div class="mb-2 flex items-center justify-between">
+          <h3 class="text-lg font-bold">ส่งข้อเสนอแนะ</h3>
+          <button onclick="forceCloseFeedback()">✕</button>
+        </div>
+        <form onsubmit="submitFeedback(event)" class="space-y-3">
+          <input id="fbEmail" required type="email" placeholder="อีเมลของคุณ" class="w-full rounded border p-2" />
+          <textarea
+            id="fbMsg"
+            required
+            placeholder="ข้อเสนอแนะ..."
+            class="h-28 w-full rounded border p-2"
+          ></textarea>
+          <button class="w-full rounded bg-purple-600 py-2 text-white">ส่งข้อเสนอแนะ</button>
+        </form>
+        <p class="mt-2 text-xs text-slate-400">* ข้อมูลจะถูกบันทึกลง Google Sheet อัตโนมัติ</p>
+      </div>
+    </div>
 
-function showDetail(i){
-const p=plants[i];
-detail.classList.remove('hidden');
+    <script>
+      // ===== TAG META =====
+      const tagMeta = {
+        toxic: { label: "☠️ มีพิษ", chip: "bg-red-100 text-red-700 border-red-200", active: "bg-red-600 text-white" },
+        fragrant: {
+          label: "🌸 กลิ่นหอม",
+          chip: "bg-pink-100 text-pink-700 border-pink-200",
+          active: "bg-pink-600 text-white",
+        },
+        smelly: {
+          label: "🤢 กลิ่นแรง",
+          chip: "bg-amber-100 text-amber-800 border-amber-200",
+          active: "bg-amber-600 text-white",
+        },
+        edible: {
+          label: "🍽 กินได้",
+          chip: "bg-emerald-100 text-emerald-700 border-emerald-200",
+          active: "bg-emerald-600 text-white",
+        },
+        ornamental: {
+          label: "🌿 ไม้ประดับ",
+          chip: "bg-sky-100 text-sky-700 border-sky-200",
+          active: "bg-sky-600 text-white",
+        },
+      };
+      const allTags = Object.keys(tagMeta);
+      let activeTag = null;
 
-detail.innerHTML=`
-<div class="bg-white rounded-xl shadow p-6">
-<h2 class="text-2xl font-bold text-purple-900 mb-2">${p.name}</h2>
-<p class="italic text-gray-500 mb-4">${p.scientific}</p>
+      // ===== ADMIN AUTH STATE =====
+      let adminAuth = false;
 
-<div class="mb-4 rounded overflow-hidden">
-<img src="${p.image}" class="w-full">
-</div>
+      // ===== STORAGE =====
+      const STORAGE_KEY = "plantsData_v1";
+      const LEGACY_CUSTOM_KEY = "customPlants";
 
-<div class="bg-blue-50 p-4 rounded mb-4">
-<p>${p.desc}</p>
-</div>
+      const clonePlants = (list) =>
+        (list || []).map((p) => ({ ...p, tags: Array.isArray(p.tags) ? [...p.tags] : [] }));
 
-<div class="bg-red-50 p-4 rounded">
-<p class="font-bold text-red-700 mb-2">วิดีโอภาษามือ</p>
-${p.youtube==="PUT_YOUTUBE"
-? "<p class='text-gray-500'>⏳ รอเพิ่มวิดีโอ</p>"
-: `<iframe src="${p.youtube}" class="w-full aspect-video rounded"></iframe>`}
-</div>
-</div>
-`;
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
 
-window.scrollTo(0,document.body.scrollHeight);
-}
-</script>
+      function sanitizeUrl(value) {
+        const raw = String(value ?? "").trim();
+        if (!raw) return "";
+        try {
+          const parsed = new URL(raw, window.location.href);
+          if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "";
+          return parsed.toString();
+        } catch {
+          return "";
+        }
+      }
 
-</body>
+      function normalizePlant(input) {
+        const tags = Array.isArray(input?.tags)
+          ? input.tags.map((t) => String(t ?? "").trim()).filter(Boolean)
+          : String(input?.tags ?? "")
+              .split(",")
+              .map((t) => t.trim())
+              .filter(Boolean);
+
+        return {
+          name: String(input?.name ?? "").trim(),
+          sci: String(input?.sci ?? "").trim(),
+          common: String(input?.common ?? "").trim(),
+          family: String(input?.family ?? "").trim(),
+          desc: String(input?.desc ?? "").trim(),
+          highlight: String(input?.highlight ?? "").trim(),
+          tags,
+          image: sanitizeUrl(input?.image ?? ""),
+          video: sanitizeUrl(input?.video ?? ""),
+        };
+      }
+
+      function loadPlants() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) return parsed.map(normalizePlant);
+          }
+        } catch {}
+
+        // Migration from legacy "customPlants"
+        try {
+          const legacyRaw = localStorage.getItem(LEGACY_CUSTOM_KEY);
+          if (legacyRaw) {
+            const legacy = JSON.parse(legacyRaw);
+            if (Array.isArray(legacy)) {
+              const combined = [...clonePlants(basePlants), ...legacy.map(normalizePlant)];
+              savePlants(combined);
+              return combined;
+            }
+          }
+        } catch {}
+
+        const defaults = clonePlants(basePlants).map(normalizePlant);
+        savePlants(defaults);
+        return defaults;
+      }
+
+      function savePlants(list) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify((list || []).map(normalizePlant)));
+        } catch {}
+      }
+
+      // ===== BASE DATA =====
+      const basePlants = [
+        {
+          name: "ลีลาวดี",
+          sci: "Plumeria rubra",
+          common: "Frangipani",
+          family: "APOCYNACEAE",
+          desc: "ไม้ดอกหอมที่นิยมปลูกประดับ",
+          highlight: "ดอกหอม ยางมีพิษ",
+          tags: ["fragrant", "toxic", "ornamental"],
+          image: "PUT_IMAGE_URL_HERE",
+          video: "PUT_VIDEO_URL_HERE",
+        },
+        {
+          name: "ขานาง",
+          sci: "Homalium tomentosum",
+          common: "Burma lancewood",
+          family: "SALICACEAE",
+          desc: "ไม้ยืนต้นขนาดใหญ่ในป่าไทย",
+          highlight: "ไม้สูงทรงสวย",
+          tags: ["ornamental"],
+          image: "PUT_IMAGE_URL_HERE",
+          video: "PUT_VIDEO_URL_HERE",
+        },
+        {
+          name: "หว้า",
+          sci: "Syzygium cumini",
+          common: "Java Plum",
+          family: "MYRTACEAE",
+          desc: "ไม้ผลพื้นบ้านให้ร่มเงา",
+          highlight: "ผลม่วงดำกินได้",
+          tags: ["edible", "ornamental"],
+          image: "PUT_IMAGE_URL_HERE",
+          video: "PUT_VIDEO_URL_HERE",
+        },
+        {
+          name: "สะเดา",
+          sci: "Azadirachta indica",
+          common: "Neem",
+          family: "MELIACEAE",
+          desc: "ไม้สมุนไพร",
+          highlight: "ใบขมใช้ยา",
+          tags: ["edible"],
+          image: "PUT_IMAGE_URL_HERE",
+          video: "PUT_VIDEO_URL_HERE",
+        },
+        {
+          name: "มะขาม",
+          sci: "Tamarindus indica",
+          common: "Tamarind",
+          family: "FABACEAE",
+          desc: "ไม้ผลเศรษฐกิจ",
+          highlight: "ฝักเปรี้ยวอมหวาน",
+          tags: ["edible"],
+          image: "PUT_IMAGE_URL_HERE",
+          video: "PUT_VIDEO_URL_HERE",
+        },
+        {
+          name: "ตะลิงปลิง",
+          sci: "Averrhoa bilimbi",
+          common: "Bilimbi",
+          family: "OXALIDACEAE",
+          desc: "ผลเปรี้ยวจัด",
+          highlight: "ผลเขียวกินได้",
+          tags: ["edible"],
+          image: "PUT_IMAGE_URL_HERE",
+          video: "PUT_VIDEO_URL_HERE",
+        },
+        {
+          name: "สัก",
+          sci: "Tectona grandis",
+          common: "Teak",
+          family: "LAMIACEAE",
+          desc: "ไม้เศรษฐกิจ",
+          highlight: "เนื้อไม้แข็ง",
+          tags: ["ornamental"],
+          image: "PUT_IMAGE_URL_HERE",
+          video: "PUT_VIDEO_URL_HERE",
+        },
+        {
+          name: "ราชพฤกษ์",
+          sci: "Cassia fistula",
+          common: "Golden Shower",
+          family: "FABACEAE",
+          desc: "ดอกไม้ประจำชาติ",
+          highlight: "ดอกเหลืองสวย",
+          tags: ["fragrant", "ornamental"],
+          image: "PUT_IMAGE_URL_HERE",
+          video: "PUT_VIDEO_URL_HERE",
+        },
+        {
+          name: "มะม่วง",
+          sci: "Mangifera indica",
+          common: "Mango",
+          family: "ANACARDIACEAE",
+          desc: "ไม้ผลยอดนิยม",
+          highlight: "ผลหวานหอม",
+          tags: ["edible", "fragrant"],
+          image: "PUT_IMAGE_URL_HERE",
+          video: "PUT_VIDEO_URL_HERE",
+        },
+        {
+          name: "ขี้เหล็ก",
+          sci: "Senna siamea",
+          common: "Kassod",
+          family: "FABACEAE",
+          desc: "ไม้พื้นบ้าน",
+          highlight: "ใบกินได้",
+          tags: ["edible"],
+          image: "PUT_IMAGE_URL_HERE",
+          video: "PUT_VIDEO_URL_HERE",
+        },
+        {
+          name: "อโศกอินเดีย",
+          sci: "Polyalthia longifolia",
+          common: "Indian Mast",
+          family: "ANNONACEAE",
+          desc: "ไม้ประดับทรงสูง",
+          highlight: "ทรงเรียว",
+          tags: ["ornamental"],
+          image: "PUT_IMAGE_URL_HERE",
+          video: "PUT_VIDEO_URL_HERE",
+        },
+        {
+          name: "ปาล์มฟอกซ์เทล",
+          sci: "Wodyetia bifurcata",
+          common: "Foxtail Palm",
+          family: "ARECACEAE",
+          desc: "ปาล์มสวย",
+          highlight: "ใบพุ่มฟู",
+          tags: ["ornamental"],
+          image: "PUT_IMAGE_URL_HERE",
+          video: "PUT_VIDEO_URL_HERE",
+        },
+        {
+          name: "หูกระจง",
+          sci: "Terminalia catappa",
+          common: "Tropical Almond",
+          family: "COMBRETACEAE",
+          desc: "ไม้ให้ร่ม",
+          highlight: "ใบใหญ่",
+          tags: ["edible", "ornamental"],
+          image: "PUT_IMAGE_URL_HERE",
+          video: "PUT_VIDEO_URL_HERE",
+        },
+        {
+          name: "ปาล์มพัด",
+          sci: "Livistona rotundifolia",
+          common: "Fan Palm",
+          family: "ARECACEAE",
+          desc: "ปาล์มใบพัด",
+          highlight: "ใบกลม",
+          tags: ["ornamental"],
+          image: "PUT_IMAGE_URL_HERE",
+          video: "PUT_VIDEO_URL_HERE",
+        },
+        {
+          name: "พยูง",
+          sci: "Dalbergia cochinchinensis",
+          common: "Rosewood",
+          family: "FABACEAE",
+          desc: "ไม้หวงห้าม",
+          highlight: "ไม้ลายสวย",
+          tags: ["ornamental"],
+          image: "PUT_IMAGE_URL_HERE",
+          video: "PUT_VIDEO_URL_HERE",
+        },
+        {
+          name: "ทองกวาว",
+          sci: "Butea monosperma",
+          common: "Flame",
+          family: "FABACEAE",
+          desc: "ดอกสีส้ม",
+          highlight: "ดอกสด",
+          tags: ["fragrant", "ornamental"],
+          image: "PUT_IMAGE_URL_HERE",
+          video: "PUT_VIDEO_URL_HERE",
+        },
+        {
+          name: "กล้วย",
+          sci: "Musa spp.",
+          common: "Banana",
+          family: "MUSACEAE",
+          desc: "พืชอาหาร",
+          highlight: "ผลกินได้",
+          tags: ["edible"],
+          image: "PUT_IMAGE_URL_HERE",
+          video: "PUT_VIDEO_URL_HERE",
+        },
+        {
+          name: "แปรงล้างขวด",
+          sci: "Callistemon citrinus",
+          common: "Bottlebrush",
+          family: "MYRTACEAE",
+          desc: "ไม้ดอก",
+          highlight: "ดอกแดง",
+          tags: ["fragrant", "ornamental"],
+          image: "PUT_IMAGE_URL_HERE",
+          video: "PUT_VIDEO_URL_HERE",
+        },
+        {
+          name: "ประดู่",
+          sci: "Pterocarpus macrocarpus",
+          common: "Padauk",
+          family: "FABACEAE",
+          desc: "ไม้เนื้อแข็ง",
+          highlight: "ไม้ทน",
+          tags: ["ornamental"],
+          image: "PUT_IMAGE_URL_HERE",
+          video: "PUT_VIDEO_URL_HERE",
+        },
+        {
+          name: "เหลืองปรีดียาธร",
+          sci: "Peltophorum pterocarpum",
+          common: "Yellow Flame",
+          family: "FABACEAE",
+          desc: "ดอกเหลือง",
+          highlight: "ดอกเป็นช่อ",
+          tags: ["fragrant", "ornamental"],
+          image: "PUT_IMAGE_URL_HERE",
+          video: "PUT_VIDEO_URL_HERE",
+        },
+        {
+          name: "ตีนเป็ด",
+          sci: "Alstonia scholaris",
+          common: "Devil Tree",
+          family: "APOCYNACEAE",
+          desc: "มีกลิ่นแรง",
+          highlight: "ยางมีพิษ",
+          tags: ["toxic", "smelly", "ornamental"],
+          image: "PUT_IMAGE_URL_HERE",
+          video: "PUT_VIDEO_URL_HERE",
+        },
+      ];
+
+      let plants = loadPlants();
+
+      const grid = document.getElementById("plantGrid");
+      const search = document.getElementById("search");
+      const filterWrap = document.getElementById("tagFilters");
+
+      function renderFilters() {
+        filterWrap.innerHTML = "";
+        const allBtn = document.createElement("button");
+        allBtn.textContent = "ทั้งหมด";
+        allBtn.className = `px-3 py-1 rounded-full border ${
+          activeTag === null ? "bg-purple-600 text-white" : "bg-slate-100"
+        }`;
+        allBtn.onclick = () => {
+          activeTag = null;
+          update();
+        };
+        filterWrap.appendChild(allBtn);
+        allTags.forEach((tag) => {
+          const meta = tagMeta[tag];
+          const btn = document.createElement("button");
+          btn.textContent = meta.label;
+          btn.className = `px-3 py-1 rounded-full border ${activeTag === tag ? meta.active : meta.chip}`;
+          btn.onclick = () => {
+            activeTag = activeTag === tag ? null : tag;
+            update();
+          };
+          filterWrap.appendChild(btn);
+        });
+      }
+
+      function render(list) {
+        grid.innerHTML = "";
+
+        if (!list.length) {
+          const empty = document.createElement("div");
+          empty.className = "col-span-full rounded-2xl bg-white p-6 text-center text-slate-500 shadow";
+          empty.textContent = "ไม่พบข้อมูล";
+          grid.appendChild(empty);
+          return;
+        }
+
+        list.forEach((p) => {
+          const card = document.createElement("div");
+          card.className = "card fade-in cursor-pointer overflow-hidden rounded-2xl bg-white shadow";
+          card.onclick = () => openModal(p);
+
+          const tags = Array.isArray(p.tags) ? p.tags : [];
+          const tagsHTML = tags
+            .filter(Boolean)
+            .map((t) => {
+              const meta = tagMeta[t] || { label: t, chip: "bg-slate-100 text-slate-700 border-slate-200" };
+              return `<span class="text-[11px] px-2 py-0.5 rounded-full border ${meta.chip}">${escapeHtml(
+                meta.label,
+              )}</span>`;
+            })
+            .join(" ");
+
+          const imageUrl = sanitizeUrl(p.image);
+          const cover =
+            imageUrl && !imageUrl.includes("PUT")
+              ? `<img src="${escapeHtml(imageUrl)}" class="w-full h-36 object-cover" alt="${escapeHtml(p.name)}"/>`
+              : `<div class="w-full h-36 bg-slate-100 flex items-center justify-center text-slate-400">ไม่มีรูป</div>`;
+
+          card.innerHTML = `
+            ${cover}
+            <div class="p-4">
+              <h3 class="font-bold text-purple-700">${escapeHtml(p.name)}</h3>
+              <div class="flex flex-wrap gap-1 my-2">${tagsHTML}</div>
+              <p class="text-sm text-slate-600">${escapeHtml(p.desc)}</p>
+            </div>`;
+          grid.appendChild(card);
+        });
+      }
+
+      function openModal(p) {
+        const modal = document.getElementById("modal");
+        const content = document.getElementById("modalContent");
+        modal.classList.remove("hidden");
+
+        const safeVideoUrl = sanitizeUrl(p.video);
+        const video =
+          safeVideoUrl && !safeVideoUrl.includes("PUT")
+            ? `<iframe class="w-full h-full rounded-xl" src="${escapeHtml(safeVideoUrl)}" allowfullscreen></iframe>`
+            : `<div class="flex items-center justify-center h-full text-slate-400">ยังไม่มีวิดีโอ</div>`;
+
+        const safeImageUrl = sanitizeUrl(p.image);
+        const img =
+          safeImageUrl && !safeImageUrl.includes("PUT")
+            ? `<img src="${escapeHtml(
+                safeImageUrl,
+              )}" class="rounded-xl w-full h-56 md:h-64 object-cover" alt="${escapeHtml(p.name)}"/>`
+            : `<div class="h-56 md:h-64 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400">ไม่มีรูป</div>`;
+
+        content.innerHTML = `
+          <div class="bg-gradient-to-r from-violet-700 via-purple-700 to-fuchsia-600 text-white p-4">
+            <h2 class="text-xl md:text-2xl font-bold">${escapeHtml(p.name)}</h2>
+            <p class="text-white/80 italic text-sm">${escapeHtml(p.sci)}</p>
+          </div>
+
+          <div class="flex-1 overflow-y-auto p-4">
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+              ${img}
+              <div class="space-y-2 text-sm">
+                <div><b>ชื่อสามัญ:</b> ${escapeHtml(p.common)}</div>
+                <div><b>วงศ์:</b> ${escapeHtml(p.family)}</div>
+                <div class="bg-slate-50 p-3 rounded-lg"><b>ลักษณะเด่น:</b><br>${escapeHtml(p.highlight).replaceAll(
+                  "\n",
+                  "<br>",
+                )}</div>
+              </div>
+            </div>
+
+            <div class="sticky top-0 bg-white py-2">
+              <div class="flex flex-wrap gap-2" id="plantTabs">
+                <button class="tabBtn px-3 py-2 rounded-lg bg-purple-600 text-white text-sm" data-tab="video">
+                  ภาษามือ
+                </button>
+                <button class="tabBtn px-3 py-2 rounded-lg bg-slate-100 text-sm" data-tab="general">
+                  ลักษณะทั่วไป
+                </button>
+                <button class="tabBtn px-3 py-2 rounded-lg bg-slate-100 text-sm" data-tab="distribution">
+                  การกระจายพันธุ์
+                </button>
+                <button class="tabBtn px-3 py-2 rounded-lg bg-slate-100 text-sm" data-tab="benefit">
+                  ประโยชน์
+                </button>
+                <button class="tabBtn px-3 py-2 rounded-lg bg-slate-100 text-sm" data-tab="reference">
+                  เอกสารอ้างอิง
+                </button>
+              </div>
+            </div>
+
+            <div id="tabContent" class="mt-3"></div>
+          </div>
+        `;
+
+        const tabContent = document.getElementById("tabContent");
+        const tabs = document.querySelectorAll(".tabBtn");
+
+        const renderTab = (name) => {
+          if (name === "video") {
+            tabContent.innerHTML = `
+              <div class="font-semibold mb-2 text-lg">วิดีโอภาษามือ</div>
+              <div class="w-full bg-black rounded-2xl overflow-hidden shadow-lg">${video}</div>
+              <p class="text-xs text-slate-400 mt-2">ใช้ลิงก์ YouTube embed (เช่น /embed/xxxx) เพื่อให้เต็มจอสวยที่สุด</p>`;
+            return;
+          }
+          if (name === "general") {
+            tabContent.innerHTML = `
+              <div class="bg-slate-50 p-4 rounded-xl text-sm">
+                <b>คำอธิบาย:</b><br>${escapeHtml(p.desc || "-").replaceAll("\n", "<br>")}
+              </div>`;
+            return;
+          }
+          if (name === "distribution") {
+            tabContent.innerHTML = `
+              <div class="grid md:grid-cols-2 gap-3 text-sm">
+                <div class="bg-blue-50 p-3 rounded-xl"><b>ถิ่นกำเนิด</b><br>พบในเขตร้อนของเอเชีย</div>
+                <div class="bg-purple-50 p-3 rounded-xl"><b>การปลูกในไทย</b><br>พบได้ทั่วไปในโรงเรียนและชุมชน</div>
+              </div>`;
+            return;
+          }
+          if (name === "benefit") {
+            tabContent.innerHTML = `
+              <div class="bg-purple-50 p-3 rounded-xl text-sm">
+                ใช้ประโยชน์ด้านภูมิทัศน์ การเรียนรู้ และการอนุรักษ์พรรณไม้ในโรงเรียน
+              </div>`;
+            return;
+          }
+          if (name === "reference") {
+            tabContent.innerHTML = `
+              <div class="bg-white border border-purple-200 p-4 rounded-xl text-sm space-y-2">
+                <div class="font-semibold text-purple-700">แหล่งอ้างอิง</div>
+                <ul class="list-disc pl-5 space-y-1 text-slate-700">
+                  <li>กรมอุทยานแห่งชาติ สัตว์ป่า และพันธุ์พืช</li>
+                  <li>Flora of Thailand Database</li>
+                  <li>สวนพฤกษศาสตร์โรงเรียน (สสวท.)</li>
+                  <li>ฐานข้อมูลพรรณไม้ในประเทศไทย (Thai Plant Database)</li>
+                </ul>
+                <p class="text-xs text-slate-400">* ผู้ดูแลสามารถแก้ไขรายการอ้างอิงในระบบ Admin ได้ในอนาคต</p>
+              </div>`;
+            return;
+          }
+        };
+
+        tabs.forEach((btn) => {
+          btn.onclick = () => {
+            tabs.forEach((b) => b.classList.remove("bg-purple-600", "text-white"));
+            tabs.forEach((b) => b.classList.add("bg-slate-100"));
+            btn.classList.add("bg-purple-600", "text-white");
+            btn.classList.remove("bg-slate-100");
+            renderTab(btn.dataset.tab);
+          };
+        });
+
+        renderTab("video");
+      }
+
+      function closeModal() {
+        document.getElementById("modal").classList.add("hidden");
+      }
+      function backdropClose(e) {
+        if (e.target.id === "modal") closeModal();
+      }
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeModal();
+      });
+
+      function applyFilters() {
+        const q = search.value.toLowerCase().trim();
+        let list = plants;
+        if (q) {
+          list = list.filter((p) => `${p.name} ${p.sci} ${p.common}`.toLowerCase().includes(q));
+        }
+        if (activeTag) list = list.filter((p) => (p.tags || []).includes(activeTag));
+        return list;
+      }
+      function update() {
+        renderFilters();
+        render(applyFilters());
+      }
+      search.addEventListener("input", update);
+
+      // ===== ADMIN =====
+      const adminBtn = document.getElementById("adminBtn");
+      const panel = document.getElementById("adminPanel");
+      adminBtn.onclick = () => {
+        if (!adminAuth) {
+          document.getElementById("loginModal").classList.remove("hidden");
+        } else toggleAdmin();
+      };
+      function toggleAdmin() {
+        panel.classList.toggle("hidden");
+        if (!panel.classList.contains("hidden")) populateAdminList();
+      }
+      function loginAdmin() {
+        const val = document.getElementById("adminPass").value;
+        if (val === "Sotkan-Tree") {
+          adminAuth = true;
+          forceCloseLogin();
+          toggleAdmin();
+        } else {
+          document.getElementById("loginErr").classList.remove("hidden");
+        }
+      }
+
+      function forceCloseLogin() {
+        document.getElementById("loginModal").classList.add("hidden");
+        document.getElementById("adminPass").value = "";
+        document.getElementById("loginErr").classList.add("hidden");
+      }
+      function closeLogin(e) {
+        if (e.target.id === "loginModal") forceCloseLogin();
+      }
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") forceCloseLogin();
+      });
+
+      // ===== EDIT / SAVE =====
+      let editIndex = null;
+      function populateAdminList() {
+        const select = document.getElementById("plantSelect");
+        select.innerHTML = '<option value="">-- เพิ่มใหม่ --</option>';
+        plants.forEach((p, i) => {
+          const opt = document.createElement("option");
+          opt.value = String(i);
+          opt.textContent = p.name || `รายการที่ ${i + 1}`;
+          select.appendChild(opt);
+        });
+      }
+      function loadSelectedPlant() {
+        const val = document.getElementById("plantSelect").value;
+        if (val === "") {
+          editIndex = null;
+          clearForm();
+          return;
+        }
+        const p = plants[Number(val)];
+        editIndex = Number(val);
+        document.getElementById("a_name").value = p.name || "";
+        document.getElementById("a_sci").value = p.sci || "";
+        document.getElementById("a_common").value = p.common || "";
+        document.getElementById("a_family").value = p.family || "";
+        document.getElementById("a_desc").value = p.desc || "";
+        document.getElementById("a_high").value = p.highlight || "";
+        document.getElementById("a_tags").value = (p.tags || []).join(",");
+        document.getElementById("a_img").value = p.image || "";
+        document.getElementById("a_vid").value = p.video || "";
+      }
+      function clearForm() {
+        ["a_name", "a_sci", "a_common", "a_family", "a_desc", "a_high", "a_tags", "a_img", "a_vid"].forEach(
+          (id) => (document.getElementById(id).value = ""),
+        );
+      }
+      function saveAdmin() {
+        const item = normalizePlant({
+          name: document.getElementById("a_name").value,
+          sci: document.getElementById("a_sci").value,
+          common: document.getElementById("a_common").value,
+          family: document.getElementById("a_family").value,
+          desc: document.getElementById("a_desc").value,
+          highlight: document.getElementById("a_high").value,
+          tags: document.getElementById("a_tags").value,
+          image: document.getElementById("a_img").value,
+          video: document.getElementById("a_vid").value,
+        });
+
+        if (!item.name) {
+          alert("กรุณากรอกชื่อไทย");
+          return;
+        }
+
+        if (editIndex !== null) plants[editIndex] = item;
+        else plants.push(item);
+
+        savePlants(plants);
+        editIndex = null;
+        clearForm();
+        document.getElementById("plantSelect").value = "";
+        toggleAdmin();
+        update();
+      }
+
+      function exportPlants() {
+        try {
+          const blob = new Blob([JSON.stringify(plants, null, 2)], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "plants.json";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+        } catch {
+          alert("Export ไม่สำเร็จ");
+        }
+      }
+
+      function triggerImport() {
+        document.getElementById("importFile").click();
+      }
+
+      async function importPlants(e) {
+        const file = e.target.files?.[0];
+        e.target.value = "";
+        if (!file) return;
+        try {
+          const text = await file.text();
+          const parsed = JSON.parse(text);
+          if (!Array.isArray(parsed)) throw new Error("Invalid JSON");
+          plants = parsed.map(normalizePlant);
+          savePlants(plants);
+          update();
+          populateAdminList();
+          alert("นำเข้าเรียบร้อย");
+        } catch {
+          alert("ไฟล์ไม่ถูกต้อง");
+        }
+      }
+
+      function resetPlants() {
+        if (!confirm("รีเซ็ตข้อมูลทั้งหมดกลับเป็นค่าเริ่มต้น? (มีผลเฉพาะเครื่องนี้)")) return;
+        plants = clonePlants(basePlants).map(normalizePlant);
+        savePlants(plants);
+        update();
+        populateAdminList();
+        editIndex = null;
+        clearForm();
+        document.getElementById("plantSelect").value = "";
+      }
+
+      // ===== FEEDBACK (Google Sheet) =====
+      const SHEET_API = "PUT_GOOGLE_SCRIPT_URL_HERE"; // ใส่ Web App URL
+
+      async function submitFeedback(e) {
+        e.preventDefault();
+        const email = document.getElementById("fbEmail").value;
+        const message = document.getElementById("fbMsg").value;
+        if (!SHEET_API.includes("http")) {
+          alert("ยังไม่ได้ตั้งค่า Google Script URL");
+          return;
+        }
+        try {
+          await fetch(SHEET_API, {
+            method: "POST",
+            body: JSON.stringify({ email, message, source: "plant-web", time: new Date().toISOString() }),
+            headers: { "Content-Type": "application/json" },
+          });
+          alert("ส่งข้อเสนอแนะแล้ว ขอบคุณครับ");
+          forceCloseFeedback();
+          document.getElementById("fbEmail").value = "";
+          document.getElementById("fbMsg").value = "";
+        } catch {
+          alert("ส่งไม่สำเร็จ ตรวจสอบอินเทอร์เน็ต");
+        }
+      }
+
+      // ===== FEEDBACK =====
+      function openFeedback() {
+        document.getElementById("feedbackModal").classList.remove("hidden");
+      }
+      function forceCloseFeedback() {
+        document.getElementById("feedbackModal").classList.add("hidden");
+      }
+      function closeFeedback(e) {
+        if (e.target.id === "feedbackModal") forceCloseFeedback();
+      }
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") forceCloseFeedback();
+      });
+
+      // init
+      renderFilters();
+      render(applyFilters());
+    </script>
+  </body>
 </html>
+
