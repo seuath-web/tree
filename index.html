@@ -4,12 +4,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>สารานุกรมพันธุ์ไม้ โรงเรียนโสตศึกษาจังหวัดกาญจนบุรี</title>  <script src="https://cdn.tailwindcss.com"></script>  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">  <style>
     body { font-family: 'Sarabun', sans-serif; }
-    .card { transition: .25s ease; }
-    .card:hover { transform: translateY(-6px) scale(1.02); }
-  </style></head><body class="bg-gradient-to-br from-purple-50 via-fuchsia-50 to-indigo-50 text-slate-800"><!-- HEADER --><header class="bg-gradient-to-r from-violet-700 via-purple-700 to-fuchsia-600 text-white py-8 text-center">
-  <h1 class="text-3xl md:text-4xl font-bold">🌿 สารานุกรมพันธุ์ไม้</h1>
-  <p class="text-white/80 mt-1">โรงเรียนโสตศึกษาจังหวัดกาญจนบุรี</p>
-</header><!-- SEARCH --><section class="max-w-6xl mx-auto px-4 py-4">
+    .card { transition: transform .25s ease, box-shadow .25s ease; }
+    .card:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(0,0,0,.15); }
+  </style></head><body class="bg-gradient-to-br from-purple-50 via-fuchsia-50 to-indigo-50 text-slate-800"><!-- HERO HEADER (เวอร์ทอง) --><header class="relative bg-gradient-to-r from-violet-700 via-purple-700 to-fuchsia-600 text-white py-12 text-center shadow-lg">
+  <div class="max-w-6xl mx-auto">
+    <h1 class="text-3xl md:text-5xl font-bold">🌿 สารานุกรมพันธุ์ไม้</h1>
+    <p class="mt-2 text-white/90">โรงเรียนโสตศึกษาจังหวัดกาญจนบุรี</p>
+    <p class="text-sm text-white/80 mt-2">แหล่งเรียนรู้พรรณไม้ภายในสถานศึกษา</p>
+  </div>
+</header><!-- SEARCH --><section class="max-w-6xl mx-auto px-4 py-5">
   <input id="search" placeholder="🔍 ค้นหาชื่อต้นไม้..."
     class="w-full p-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-purple-500" />
 </section><!-- GRID --><section class="max-w-6xl mx-auto px-4 pb-16">
@@ -23,7 +26,7 @@
   ผู้รับผิดชอบโครงการแหล่งเรียนรู้ภายในสถานศึกษา: ธนชัย นพวัฒน์
 </footer><script>
 
-// ================== 21 TREES ==================
+// ================= GOLD DATA =================
 const plants=[
 {name:"ลีลาวดี",sci:"Plumeria rubra",desc:"ไม้ดอกหอม นิยมปลูกประดับ"},
 {name:"ขานาง",sci:"Homalium tomentosum",desc:"ไม้ยืนต้นขนาดใหญ่"},
@@ -128,6 +131,33 @@ function showQR(name){
   box.innerHTML='<div id="qrCanvas" class="flex justify-center mt-3"></div>';
   const url=location.origin+location.pathname+'?plant='+encodeURIComponent(name);
   new QRCode(document.getElementById('qrCanvas'),{text:url,width:160,height:160});
+}
+
+// เปิดจาก QR
+const params=new URLSearchParams(location.search);
+const plantFromQR=params.get('plant');
+if(plantFromQR){
+  const found=plants.find(p=>p.name===plantFromQR);
+  if(found){
+    setTimeout(()=>{
+      openModal(found);
+      addQRCloseButton();
+    },300);
+  }
+}
+
+// PATCH: ปุ่มไม่บังชื่อ
+function addQRCloseButton(){
+  const modalBox=document.querySelector('#modal > div');
+  if(!modalBox) return;
+  const btn=document.createElement('button');
+  btn.textContent='🚪 ปิดหน้านี้';
+  btn.className='absolute left-4 top-16 md:top-14 text-xs bg-slate-800 text-white px-3 py-1 rounded-full shadow';
+  btn.onclick=()=>{
+    window.close();
+    setTimeout(()=>{ history.back(); },200);
+  };
+  modalBox.appendChild(btn);
 }
 
 search.addEventListener('input',()=>{
